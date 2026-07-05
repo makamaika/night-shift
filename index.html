@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <meta name="description" content="訪問者が新米SOCアナリストになり、一夜のシフトを勤め上げる体験型シミュレーション。コマンドで調査し、証跡をつなぎ、一本のキルチェーンを解き明かす自己完結の静的Web教材。">
+  <meta name="theme-color" content="#0a0e14">
+  <title>夜勤のSOC ｜ NIGHT SHIFT</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/effects.css">
+  <link rel="stylesheet" href="css/challenge.css">
+</head>
+<body>
+
+  <!-- ============================================================= -->
+  <!-- #boot : 起動 / ブリーフィング画面                             -->
+  <!-- ============================================================= -->
+  <div id="boot" class="ns-boot" role="dialog" aria-modal="true" aria-labelledby="boot-title" aria-describedby="boot-lede">
+    <div class="ns-boot__inner">
+
+      <header class="ns-boot__head">
+        <p class="ns-boot__kicker" aria-hidden="true">SECURITY OPERATIONS CENTER ｜ 24/7/365</p>
+        <h1 id="boot-title" class="ns-logo" aria-label="夜勤のSOC ナイトシフト">
+          <span class="ns-logo__ja">夜勤のSOC</span>
+          <span class="ns-logo__sep" aria-hidden="true">｜</span>
+          <span class="ns-logo__en">NIGHT<span class="ns-logo__blink" aria-hidden="true"> </span>SHIFT</span>
+        </h1>
+        <p class="ns-boot__tag" aria-hidden="true">One Night in the SOC</p>
+      </header>
+
+      <p id="boot-lede" class="ns-boot__lede">
+        ようこそ夜勤へ。あなたは本日の当番アナリスト。
+        深夜0時、24時間365日監視のSOC(セキュリティ監視室)に座る新米として、
+        静かな夜が一件のアラートから崩れていく一晩を勤め上げます。
+        コマンドを叩き、ログを読み、経路をたどり、散らばった証跡が
+        <strong>一本の線</strong>につながる瞬間を、あなたの手で解き明かしてください。
+      </p>
+
+      <div class="ns-boot__note" role="note">
+        本サイトは、筆者がある実習(全13週)で学んだネットワークとセキュリティの知識を、
+        一夜のSOC体験として再構成した教材です。舞台の企業・IP・ドメインはすべて架空です。
+      </div>
+
+      <form id="boot-form" class="ns-boot__form" novalidate>
+
+        <!-- モード選択 -->
+        <fieldset class="ns-field ns-field--mode">
+          <legend class="ns-field__legend">モードを選ぶ</legend>
+          <p class="ns-field__desc" id="mode-desc">
+            見学モードは各場面で次の一手をサジェスト表示します。実務モードは自力でコマンドを組み立てます。
+          </p>
+          <div class="ns-radios" role="radiogroup" aria-labelledby="mode-legend" aria-describedby="mode-desc">
+            <span id="mode-legend" class="ns-visually-hidden">モード</span>
+            <label class="ns-radio">
+              <input type="radio" name="mode" value="guided" checked>
+              <span class="ns-radio__box" aria-hidden="true"></span>
+              <span class="ns-radio__label">
+                <span class="ns-radio__title">見学モード</span>
+                <span class="ns-radio__sub">サジェスト付き・迷わず進める</span>
+              </span>
+            </label>
+            <label class="ns-radio">
+              <input type="radio" name="mode" value="pro">
+              <span class="ns-radio__box" aria-hidden="true"></span>
+              <span class="ns-radio__label">
+                <span class="ns-radio__title">実務モード</span>
+                <span class="ns-radio__sub">自分でコマンドを打つ</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        <!-- 章ジャンプ -->
+        <div class="ns-field ns-field--jump">
+          <label class="ns-field__legend" for="jump-select">開始フェーズ(章ジャンプ)</label>
+          <p class="ns-field__desc">任意の時刻から開始できます。通しで遊ぶなら「静かな夜」を選んでください。</p>
+          <div class="ns-select">
+            <select id="jump-select" name="jump">
+              <option value="quiet" selected>00:00 〈静かな夜〉 — 道具開き</option>
+              <option value="ripple">01:00 〈最初のさざなみ〉 — IoT/Mirai侵入</option>
+              <option value="storm">02:30 〈嵐が来る〉 — DDoS(処理能力超過)</option>
+              <option value="silent">03:30 〈静かすぎる〉 — Web改ざん/ハッシュ照合</option>
+              <option value="line">05:00 〈一本の線〉 — キルチェーン統合</option>
+              <option value="dawn">06:00 〈朝が来る〉 — 引き継ぎレポート</option>
+            </select>
+            <span class="ns-select__chevron" aria-hidden="true"></span>
+          </div>
+        </div>
+
+        <!-- モーション軽減トグル -->
+        <div class="ns-field ns-field--reduce">
+          <label class="ns-toggle" for="chk-reduce">
+            <input type="checkbox" id="chk-reduce">
+            <span class="ns-toggle__track" aria-hidden="true"><span class="ns-toggle__thumb"></span></span>
+            <span class="ns-toggle__label">
+              <span class="ns-toggle__title">モーションを軽減する</span>
+              <span class="ns-toggle__sub" id="reduce-note">タイプ演出やグラフの動きを静的化します</span>
+            </span>
+          </label>
+        </div>
+
+        <div class="ns-boot__actions">
+          <button type="submit" id="btn-start" class="ns-btn ns-btn--primary ns-btn--lg">
+            <span class="ns-btn__ico" aria-hidden="true">▶</span>
+            シフト開始
+          </button>
+          <button type="button" id="btn-challenge" class="ns-btn ns-btn--ghost ns-btn--lg">
+            <span class="ns-btn__ico" aria-hidden="true">◆</span>
+            実践演習に挑む
+          </button>
+          <p class="ns-boot__hint" aria-hidden="true">キーボードだけで最後までクリアできます。実践演習はサジェストなしの腕試しです。</p>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- #app : SOCコンソール本体                                       -->
+  <!-- ============================================================= -->
+  <div id="app" class="ns-app" role="application" aria-label="SOCコンソール" hidden>
+
+    <!-- 上部バー -->
+    <header id="topbar" class="ns-topbar">
+      <div class="ns-topbar__left">
+        <time id="clock" class="ns-clock" aria-label="現在時刻" datetime="00:00">00:00</time>
+        <span id="phase-name" class="ns-phase-name" aria-live="polite">静かな夜</span>
+      </div>
+      <div class="ns-topbar__center">
+        <ul id="status-lights" class="ns-lights" aria-label="監視ステータス">
+          <li class="ns-light ns-light--green" data-light="green">
+            <span class="ns-light__dot" aria-hidden="true"></span>
+            <span class="ns-light__txt">正常</span>
+            <span class="ns-light__count" data-count>0</span>
+          </li>
+          <li class="ns-light ns-light--amber" data-light="amber">
+            <span class="ns-light__dot" aria-hidden="true"></span>
+            <span class="ns-light__txt">警告</span>
+            <span class="ns-light__count" data-count>0</span>
+          </li>
+          <li class="ns-light ns-light--red" data-light="red">
+            <span class="ns-light__dot" aria-hidden="true"></span>
+            <span class="ns-light__txt">危険</span>
+            <span class="ns-light__count" data-count>0</span>
+          </li>
+        </ul>
+      </div>
+      <div class="ns-topbar__right">
+        <button type="button" id="btn-reduce" class="ns-iconbtn" aria-pressed="false" title="モーション軽減の切り替え">
+          <span class="ns-iconbtn__ico" aria-hidden="true">◐</span>
+          <span class="ns-iconbtn__txt">モーション軽減</span>
+        </button>
+        <button type="button" id="btn-help" class="ns-iconbtn" aria-haspopup="dialog" title="ヘルプ・コマンド一覧">
+          <span class="ns-iconbtn__ico" aria-hidden="true">?</span>
+          <span class="ns-iconbtn__txt">ヘルプ</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- 左: アラートキュー + チャット -->
+    <aside id="queue" class="ns-queue" aria-label="アラートキューとチーム連絡">
+      <section class="ns-queue__alerts" aria-labelledby="queue-alerts-h">
+        <h2 id="queue-alerts-h" class="ns-panel-title">
+          <span class="ns-panel-title__ico" aria-hidden="true">◎</span>受信アラート
+        </h2>
+        <ul id="alert-list" class="ns-alert-list" aria-live="polite" aria-relevant="additions">
+          <!-- .ns-alert[data-alert-id][data-sev] を shift/ui が挿入 -->
+        </ul>
+        <p class="ns-queue__empty" data-empty hidden>今のところ新規アラートはありません。</p>
+      </section>
+
+      <section class="ns-queue__chat" aria-labelledby="queue-chat-h">
+        <h2 id="queue-chat-h" class="ns-panel-title">
+          <span class="ns-panel-title__ico" aria-hidden="true">✎</span>チーム連絡
+        </h2>
+        <div id="chat" class="ns-chat" role="log" aria-live="polite" aria-label="アオイ先輩とのチャット">
+          <!-- .ns-chat__msg[data-from] を shift/games が挿入 -->
+        </div>
+      </section>
+    </aside>
+
+    <!-- 中央: 調査ワークスペース -->
+    <main id="workspace" class="ns-workspace" aria-label="調査ワークスペース">
+      <nav id="tabs" class="ns-tabs" role="tablist" aria-label="ワークスペースの切り替え">
+        <button type="button" class="ns-tab" data-tab="terminal" role="tab" id="tab-terminal"
+                aria-selected="true" aria-controls="pane-terminal" tabindex="0">
+          <span class="ns-tab__ico" aria-hidden="true">›_</span>ターミナル
+        </button>
+        <button type="button" class="ns-tab" data-tab="network" role="tab" id="tab-network"
+                aria-selected="false" aria-controls="pane-network" tabindex="-1">
+          <span class="ns-tab__ico" aria-hidden="true">⇄</span>ネットワーク
+        </button>
+        <button type="button" class="ns-tab" data-tab="evidence" role="tab" id="tab-evidence"
+                aria-selected="false" aria-controls="pane-evidence" tabindex="-1">
+          <span class="ns-tab__ico" aria-hidden="true">⌘</span>証跡ボード
+          <span id="evidence-count" class="ns-tab__badge" data-count hidden>0</span>
+        </button>
+        <button type="button" class="ns-tab" data-tab="game" role="tab" id="tab-game"
+                aria-selected="false" aria-controls="pane-game" tabindex="-1">
+          <span class="ns-tab__ico" aria-hidden="true">◈</span>対応
+        </button>
+      </nav>
+
+      <!-- ターミナル -->
+      <section id="pane-terminal" class="ns-pane ns-pane--terminal" role="tabpanel"
+               aria-labelledby="tab-terminal" tabindex="0">
+        <h2 class="ns-visually-hidden">調査ターミナル</h2>
+        <div id="term-output" class="ns-term__output" role="log" aria-live="polite" aria-label="ターミナル出力">
+          <!-- NS.term.print が行を挿入 -->
+        </div>
+        <div id="term-suggest" class="ns-term__suggest" aria-label="サジェストコマンド">
+          <!-- 見学モード: NS.term.suggest がチップを挿入 -->
+        </div>
+        <form id="term-form" class="ns-term__form" novalidate>
+          <span class="ns-term__prompt" aria-hidden="true">analyst@soc:~$</span>
+          <label for="term-input" class="ns-visually-hidden">コマンドを入力</label>
+          <input type="text" id="term-input" class="ns-term__input"
+                 autocomplete="off" autocapitalize="off" autocorrect="off"
+                 spellcheck="false" enterkeyhint="send"
+                 aria-describedby="term-hint" placeholder="コマンドを入力(help でコマンド一覧)">
+          <span id="term-hint" class="ns-visually-hidden">
+            上下キーで履歴、Tabで補完。help と入力すると使えるコマンドの一覧が出ます。
+          </span>
+        </form>
+      </section>
+
+      <!-- ネットワーク図 + NAT表 -->
+      <section id="pane-network" class="ns-pane ns-pane--network" role="tabpanel"
+               aria-labelledby="tab-network" tabindex="0" hidden>
+        <h2 class="ns-visually-hidden">ネットワーク図とNATセッション表</h2>
+        <div class="ns-net">
+          <div class="ns-net__map-wrap">
+            <h3 class="ns-panel-title ns-panel-title--sub">
+              <span class="ns-panel-title__ico" aria-hidden="true">⌗</span>監視対象ネットワーク
+            </h3>
+            <div id="net-map" class="ns-net__map" role="img"
+                 aria-label="監視対象ネットワークの構成図。境界ファイアウォール、DMZ、社内ゾーンとIoT機器を含む。">
+              <!-- panels.js が world.devices から静的SVGを生成 -->
+            </div>
+          </div>
+          <div class="ns-net__nat-wrap">
+            <h3 class="ns-panel-title ns-panel-title--sub">
+              <span class="ns-panel-title__ico" aria-hidden="true">≣</span>NAPTセッション表
+            </h3>
+            <div id="nat-view" class="ns-net__nat" tabindex="0" aria-label="NAPTセッション表">
+              <!-- panels.js が world.natTable を表として描画 -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 証跡ボード -->
+      <section id="pane-evidence" class="ns-pane ns-pane--evidence" role="tabpanel"
+               aria-labelledby="tab-evidence" tabindex="0" hidden>
+        <h2 class="ns-panel-title">
+          <span class="ns-panel-title__ico" aria-hidden="true">⌘</span>証跡ボード
+        </h2>
+        <p class="ns-pane__lede">夜のうちに掘り当てた事実がここに集まります。集まった証跡は〈一本の線〉で相関分析にかけます。</p>
+        <div id="evidence-board" class="ns-evidence-board" aria-live="polite">
+          <!-- panels.js が証跡カードを挿入 -->
+        </div>
+        <p class="ns-evidence-board__empty" data-empty>まだ証跡はありません。調査を進めると集まります。</p>
+      </section>
+
+      <!-- ゲーム -->
+      <section id="pane-game" class="ns-pane ns-pane--game" role="tabpanel"
+               aria-labelledby="tab-game" tabindex="0" hidden>
+        <h2 class="ns-visually-hidden">インシデント対応コンソール</h2>
+        <!-- aria-live は付けない: ゲームは mount 時に大量ノードを一括生成するため、
+             上位ポライト領域だと全体が一気に読み上げられ、内部の毎フレーム更新とも競合する。
+             逐次読み上げが要る計器値は各ゲーム内の狭い aria-live 要素に限定する。 -->
+        <div id="game-root" class="ns-game-root">
+          <!-- games/* がここに mount する -->
+          <p class="ns-game-root__idle" data-idle>いまは対応が必要なインシデントはありません。</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- 右: ナレッジ(道具箱) -->
+    <aside id="knowledge" class="ns-knowledge" aria-labelledby="knowledge-h">
+      <h2 id="knowledge-h" class="ns-panel-title">
+        <span class="ns-panel-title__ico" aria-hidden="true">▣</span>ナレッジ(道具箱)
+      </h2>
+      <p class="ns-knowledge__lede">調査で必要になった知識がここに解禁されます。カードを選ぶと詳しい解説が出ます。</p>
+      <div id="knowledge-list" class="ns-knowledge__list" role="list" aria-label="解禁済みナレッジ">
+        <!-- panels.js が解禁済みカードを挿入 -->
+      </div>
+      <p class="ns-knowledge__empty" data-empty>まだ解禁された知識はありません。</p>
+      <div id="knowledge-detail" class="ns-knowledge__detail" aria-live="polite" aria-label="ナレッジ詳細">
+        <!-- 選択したカードの詳説を panels.js が描画 -->
+      </div>
+    </aside>
+
+  </div><!-- /#app -->
+
+  <!-- ============================================================= -->
+  <!-- 法・倫理メモ ダイアログ                                        -->
+  <!-- ============================================================= -->
+  <div id="law-dialog" class="ns-dialog ns-dialog--law" role="dialog" aria-modal="true"
+       aria-labelledby="law-title" aria-describedby="law-body" hidden>
+    <div class="ns-dialog__backdrop" data-close aria-hidden="true"></div>
+    <div class="ns-dialog__panel" role="document">
+      <header class="ns-dialog__head">
+        <p class="ns-dialog__kicker" aria-hidden="true">法・倫理メモ</p>
+        <h2 id="law-title" class="ns-dialog__title">その調査、越権では?</h2>
+        <button type="button" class="ns-dialog__close" data-close aria-label="閉じる">
+          <span aria-hidden="true">✕</span>
+        </button>
+      </header>
+      <div id="law-body" class="ns-dialog__body">
+        <!-- panels.js が法メモ本文・出典・選択肢を描画 -->
+      </div>
+      <footer class="ns-dialog__foot">
+        <div id="law-choices" class="ns-dialog__choices" role="group" aria-label="判断の選択">
+          <!-- panels.js が選択肢ボタンを描画 -->
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- ヘルプ ダイアログ                                              -->
+  <!-- ============================================================= -->
+  <div id="help-dialog" class="ns-dialog ns-dialog--help" role="dialog" aria-modal="true"
+       aria-labelledby="help-title" hidden>
+    <div class="ns-dialog__backdrop" data-close aria-hidden="true"></div>
+    <div class="ns-dialog__panel" role="document">
+      <header class="ns-dialog__head">
+        <p class="ns-dialog__kicker" aria-hidden="true">HELP</p>
+        <h2 id="help-title" class="ns-dialog__title">操作とコマンド</h2>
+        <button type="button" class="ns-dialog__close" data-close aria-label="閉じる">
+          <span aria-hidden="true">✕</span>
+        </button>
+      </header>
+      <div id="help-body" class="ns-dialog__body">
+        <!-- main/ui がコマンド一覧・キーボード操作を描画 -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- #ending : 朝の引き継ぎレポート                                 -->
+  <!-- ============================================================= -->
+  <section id="ending" class="ns-ending" aria-labelledby="ending-h" hidden>
+    <div class="ns-ending__inner">
+      <header class="ns-ending__head">
+        <p class="ns-ending__kicker" aria-hidden="true">06:00 ｜ END OF SHIFT</p>
+        <h2 id="ending-h" class="ns-ending__title">朝が来る — 引き継ぎ</h2>
+      </header>
+
+      <div class="ns-ending__grid">
+        <article class="ns-ending__report" aria-labelledby="report-h">
+          <h3 id="report-h" class="ns-panel-title">
+            <span class="ns-panel-title__ico" aria-hidden="true">▤</span>インシデント引き継ぎレポート
+          </h3>
+          <div id="report-doc" class="ns-report-doc">
+            <!-- report.js が行動ログからレポート文面を生成 -->
+          </div>
+        </article>
+
+        <aside class="ns-ending__side">
+          <section aria-labelledby="weeks-h">
+            <h3 id="weeks-h" class="ns-panel-title">
+              <span class="ns-panel-title__ico" aria-hidden="true">✦</span>今夜使った知識(全13週)
+            </h3>
+            <ul id="week-lights" class="ns-week-lights" aria-label="使用した週の点灯">
+              <!-- report.js が13週チップを並べ、使用に応じ点灯 -->
+            </ul>
+          </section>
+
+          <section aria-labelledby="share-h">
+            <h3 id="share-h" class="ns-panel-title">
+              <span class="ns-panel-title__ico" aria-hidden="true">⇪</span>共有カード
+            </h3>
+            <div id="share-card" class="ns-share-card">
+              <!-- report.js がテキストサマリ + コピー用ボタンを描画 -->
+            </div>
+          </section>
+        </aside>
+      </div>
+
+      <div class="ns-ending__actions">
+        <button type="button" id="btn-restart" class="ns-btn ns-btn--primary ns-btn--lg">
+          <span class="ns-btn__ico" aria-hidden="true">↺</span>
+          もう一度シフトに入る
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- #challenge : 実践演習(CHALLENGE)モード                        -->
+  <!-- ============================================================= -->
+  <section id="challenge" class="ns-challenge" role="dialog" aria-modal="true"
+           aria-labelledby="ch-title" hidden>
+    <div class="ns-challenge__inner">
+      <header class="ns-challenge__head">
+        <p class="ns-challenge__kicker" aria-hidden="true">PRACTICAL DRILLS ｜ 実践演習</p>
+        <button type="button" id="btn-challenge-back" class="ns-challenge__back">
+          <span aria-hidden="true">←</span> タイトルに戻る
+        </button>
+        <h2 id="ch-title" class="ns-challenge__title">実践演習 — アナリストの手練</h2>
+        <p class="ns-challenge__lede">
+          サジェストはありません。実際のインシデント対応で使う読み・計算・切り分けを、自力で解いてください。
+          ログの相関、符号化のデコード、サブネットの暗算、なりすましの見破り——夜勤で培った目を試す全12問です。
+        </p>
+        <p id="ch-progress" class="ns-challenge__progress" aria-live="polite">0 / 12 クリア</p>
+      </header>
+      <div id="ch-list" class="ns-challenge__list">
+        <!-- challenge.js が NSD.CHALLENGES から問題カードを描画 -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================= -->
+  <!-- トースト領域                                                   -->
+  <!-- ============================================================= -->
+  <div id="toast-region" class="ns-toast-region" aria-live="polite" aria-atomic="false">
+    <!-- 誰でも toast イベントで一時通知を挿入 -->
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- スクリプト読み込み(契約§2の順序・素の<script>)               -->
+  <!-- ============================================================= -->
+  <script src="js/data/knowledge.js"></script>
+  <script src="js/data/world.js"></script>
+  <script src="js/data/story.js"></script>
+  <script src="js/data/challenges.js"></script>
+  <script src="js/engine/state.js"></script>
+  <script src="js/engine/terminal.js"></script>
+  <script src="js/engine/shift.js"></script>
+  <script src="js/ui/panels.js"></script>
+  <script src="js/games/ddos.js"></script>
+  <script src="js/games/hash.js"></script>
+  <script src="js/games/killchain.js"></script>
+  <script src="js/games/report.js"></script>
+  <script src="js/a11y.js"></script>
+  <script src="js/challenge.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+/* effects.css — グロー・点滅・線描画・レーダー・boot演出。すべて reduced で無効化(点滅は3回/秒未満) */
+
+/* ============================================================= */
+/* 淡いCRTグロー(控えめな text-shadow。要所のみ)                 */
+/* ============================================================= */
+.ns-logo__en   { text-shadow: var(--ns-glow-cyan); }
+.ns-clock      { text-shadow: 0 0 8px #22d3ee40; }
+.ns-btn--primary { box-shadow: var(--ns-shadow-1), 0 0 16px #3ddc8433; }
+.ns-tab[aria-selected="true"] { text-shadow: 0 0 8px #22d3ee40; }
+.ns-report-doc__rank-grade { text-shadow: var(--ns-glow-green); }
+
+/* ターミナル出力の見出し/成功行にほのかな残光 */
+.ns-line--head, .ns-term__output .head { text-shadow: 0 0 7px #22d3ee33; }
+.ns-line--ok,   .ns-term__output .ok   { text-shadow: 0 0 6px #3ddc8426; }
+
+/* 点灯した週チップ・解禁カードの縁グロー */
+.ns-week[data-lit="true"] { box-shadow: 0 0 12px #3ddc8433, inset 0 0 8px #3ddc8418; }
+.ns-chip { box-shadow: 0 0 0 transparent; transition: box-shadow var(--ns-dur-2) var(--ns-ease),
+             background var(--ns-dur-2) var(--ns-ease), border-color var(--ns-dur-2) var(--ns-ease); }
+.ns-chip:hover { box-shadow: var(--ns-glow-cyan); }
+
+/* ============================================================= */
+/* ロゴのカーソル点滅(1.1s ≒ 0.9回/秒 < 3回/秒)                  */
+/* ============================================================= */
+@keyframes ns-blink {
+  0%, 48%   { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.ns-logo__blink { animation: ns-blink 1.1s steps(1) infinite; }
+.ns-term__cursor { animation: ns-blink 1.1s steps(1) infinite; }
+
+/* ============================================================= */
+/* ステータスランプの点滅(危険=赤のみ。1.4s周期 ≒ 0.7回/秒)      */
+/* ============================================================= */
+@keyframes ns-lamp-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+/* 件数が1以上の赤ランプだけ穏やかに脈動 */
+.ns-light--red:not([data-count="0"]) .ns-light__dot {
+  animation: ns-lamp-pulse 1.4s ease-in-out infinite;
+  box-shadow: 0 0 8px currentColor;
+}
+.ns-light--amber:not([data-count="0"]) .ns-light__dot { box-shadow: 0 0 6px currentColor; }
+.ns-light--green:not([data-count="0"]) .ns-light__dot { box-shadow: 0 0 6px currentColor; }
+
+/* 対応中アラートの左ボーダーがゆっくり明滅(注意喚起・1.6s) */
+@keyframes ns-alert-glow {
+  0%, 100% { box-shadow: -3px 0 0 -1px transparent; }
+  50%      { box-shadow: -3px 0 10px -2px var(--ns-glow-clr, var(--ns-cyan)); }
+}
+.ns-alert[data-state="open"] { animation: ns-alert-glow 1.6s ease-in-out infinite; }
+/* 危険アラートは赤の明滅(--ns-glow-clr で色を差し替え) */
+.ns-alert[data-sev="crit"][data-state="new"],
+.ns-alert[data-sev="danger"][data-state="new"] {
+  --ns-glow-clr: var(--ns-red);
+  animation: ns-alert-glow 1.6s ease-in-out infinite;
+}
+
+/* ============================================================= */
+/* レーダースイープ(topbar 装飾)                                 */
+/* ============================================================= */
+.ns-topbar::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0;
+  height: 2px;
+  width: 22%;
+  background: linear-gradient(90deg, transparent, var(--ns-cyan), transparent);
+  opacity: 0.7;
+  animation: ns-sweep 6s linear infinite;
+  pointer-events: none;
+}
+@keyframes ns-sweep {
+  0%   { transform: translateX(-30%); }
+  100% { transform: translateX(560%); }
+}
+
+/* ============================================================= */
+/* boot 画面のフェード / app・ending の立ち上がり                 */
+/* ============================================================= */
+@keyframes ns-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ns-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes ns-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+.ns-boot { animation: ns-fade-in var(--ns-dur-slow) var(--ns-ease) both; }
+.ns-boot__inner { animation: ns-rise var(--ns-dur-slow) var(--ns-ease-out) both; }
+/* JS が閉じる際に .is-leaving を付ける想定(なければ hidden で即消え) */
+.ns-boot.is-leaving { animation: ns-fade-out var(--ns-dur-3) var(--ns-ease) both; }
+
+.ns-app { animation: ns-fade-in var(--ns-dur-3) var(--ns-ease) both; }
+.ns-ending { animation: ns-fade-in var(--ns-dur-slow) var(--ns-ease) both; }
+.ns-ending__report,
+.ns-ending__side > section { animation: ns-rise var(--ns-dur-slow) var(--ns-ease-out) both; }
+
+/* ダイアログの立ち上がり */
+@keyframes ns-dialog-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+.ns-dialog__panel { animation: ns-dialog-in var(--ns-dur-3) var(--ns-ease-out) both; }
+.ns-dialog__backdrop { animation: ns-fade-in var(--ns-dur-2) var(--ns-ease) both; }
+
+/* 新着アラート・チャット・証跡カードのスライドイン */
+@keyframes ns-slide-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+.ns-alert    { animation: ns-slide-in var(--ns-dur-3) var(--ns-ease-out) both; }
+.ns-chat__msg { animation: ns-slide-in var(--ns-dur-3) var(--ns-ease-out) both; }
+.ns-evidence { animation: ns-rise var(--ns-dur-3) var(--ns-ease-out) both; }
+.ns-kcard    { animation: ns-slide-in var(--ns-dur-2) var(--ns-ease-out) both; }
+
+/* トーストの出入り(JS が .is-out を付けたら消える) */
+@keyframes ns-toast-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: none; }
+}
+.ns-toast { animation: ns-toast-in var(--ns-dur-3) var(--ns-ease-out) both; }
+.ns-toast.is-out { animation: ns-fade-out var(--ns-dur-3) var(--ns-ease) both; }
+
+/* ============================================================= */
+/* killchain — 線描画 + カード整列                                */
+/*   killchain.js は #game-root 内に .ns-chain を描画する想定。     */
+/*   SVG線は .ns-chain__line に stroke-dasharray を設定し、        */
+/*   .is-drawing で dashoffset を 0 に流す。                       */
+/* ============================================================= */
+.ns-chain__line {
+  fill: none;
+  stroke: var(--ns-cyan);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 6px #22d3ee88);
+  stroke-dasharray: var(--ns-dash, 1200);
+  stroke-dashoffset: var(--ns-dash, 1200);
+  transition: stroke-dashoffset 900ms var(--ns-ease);
+}
+.ns-chain__line.is-drawing { stroke-dashoffset: 0; }
+
+/* 実際の killchain.js は .ns-kc__link-glow を描画し、is-drawing で dashoffset を 0 へ流す。
+   dasharray/offset は JS がインラインで設定するため、ここでは遷移だけ与える。 */
+.ns-kc__link-glow { stroke-linecap: round; transition: stroke-dashoffset 700ms var(--ns-ease); }
+.ns-kc__link-glow.is-drawing { stroke-dashoffset: 0; }
+
+/* 証跡カードが時刻順に整列してくる(段階フェード。JS が --i を付与) */
+@keyframes ns-chain-card {
+  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  to   { opacity: 1; transform: none; }
+}
+.ns-chain__card {
+  animation: ns-chain-card var(--ns-dur-slow) var(--ns-ease-out) both;
+  animation-delay: calc(var(--i, 0) * 220ms);
+}
+/* 相関点灯した接続点 */
+.ns-chain__node { transition: fill var(--ns-dur-3) var(--ns-ease); }
+.ns-chain__node.is-lit { fill: var(--ns-cyan); filter: drop-shadow(0 0 6px #22d3eeaa); }
+
+/* クライマックスのコピー浮かび上がり */
+@keyframes ns-chain-copy {
+  from { opacity: 0; letter-spacing: 0.4em; }
+  to   { opacity: 1; letter-spacing: 0.08em; }
+}
+.ns-chain__copy {
+  animation: ns-chain-copy 1200ms var(--ns-ease-out) both;
+  text-shadow: var(--ns-glow-cyan);
+}
+
+/* DDoS グラフの罠ボタン踏み時の危険明滅(短時間、JS が付け外し) */
+@keyframes ns-danger-flash {
+  0%, 100% { background-color: transparent; }
+  50%      { background-color: #ff4d4d22; }
+}
+.ns-game-root.is-alarm { animation: ns-danger-flash 0.9s ease-in-out 2; }
+
+/* ゲージが危険域のときの縁グロー */
+.ns-gauge[data-level="crit"] .ns-gauge__track { box-shadow: 0 0 12px #ff4d4d55; }
+
+/* ============================================================= */
+/* すべての動きを無効化                                           */
+/*   @media(prefers-reduced-motion: reduce) と                    */
+/*   html[data-reduced="1"] の両系統(§9規定)                     */
+/* ============================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* 線描画は完成状態で即固定 */
+  .ns-chain__line { stroke-dashoffset: 0 !important; transition: none !important; }
+  .ns-chain__card { opacity: 1 !important; transform: none !important; }
+  /* 点滅は消さず「点いたまま」に固定 */
+  .ns-logo__blink, .ns-term__cursor { opacity: 1 !important; }
+  .ns-topbar::after { display: none !important; }
+}
+
+html[data-reduced="1"] *,
+html[data-reduced="1"] *::before,
+html[data-reduced="1"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  animation-delay: 0ms !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+html[data-reduced="1"] .ns-chain__line { stroke-dashoffset: 0 !important; transition: none !important; }
+html[data-reduced="1"] .ns-chain__card { opacity: 1 !important; transform: none !important; }
+html[data-reduced="1"] .ns-logo__blink,
+html[data-reduced="1"] .ns-term__cursor { opacity: 1 !important; }
+html[data-reduced="1"] .ns-topbar::after { display: none !important; }
+/* reduced 時もグロー(静的な text-shadow / box-shadow)は残す — 動きのみ止める */

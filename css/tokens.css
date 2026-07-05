@@ -1,0 +1,124 @@
+/* tokens.css — デザイントークン(契約§9)。全変数を:rootに定義。生の色コード直書き禁止 */
+
+:root {
+  /* ---- カラー(§9 正準) ---- */
+  --ns-bg:    #0a0e14;
+  --ns-bg2:   #0f1520;
+  --ns-panel: #121a28;
+  --ns-line:  #1e2a3a;
+  --ns-text:  #d7e2ee;
+  --ns-dim:   #8296ac;
+  --ns-green: #3ddc84;
+  --ns-amber: #ffb020;
+  --ns-red:   #ff4d4d;
+  --ns-cyan:  #22d3ee;
+
+  /* ---- 派生色 / 状態色(コントラスト4.5:1配慮) ---- */
+  --ns-panel2:     #16213280;   /* 半透明の下地(グリッド越しに見せる) */
+  --ns-line-soft:  #16202e;
+  --ns-line-hi:    #2a3c52;
+  --ns-text-hi:    #eef4fb;
+  --ns-dim2:       #7488a4;      /* 控えめだが本文サイズでもAA(4.5:1)を満たす(panel上4.82:1/bg上5.34:1) */
+
+  /* 各シビリティ色の薄い塗り(左ボーダー付きカードの下地) */
+  --ns-green-bg:  #3ddc8418;
+  --ns-amber-bg:  #ffb02018;
+  --ns-red-bg:    #ff4d4d1a;
+  --ns-cyan-bg:   #22d3ee18;
+  --ns-green-hi:  #7ff0b0;       /* 暗地の上での本文用に明るめグリーン(4.5:1+) */
+  --ns-amber-hi:  #ffc659;
+  --ns-red-hi:    #ff8080;
+  --ns-cyan-hi:   #6ee7f7;
+
+  /* フォーカスリング */
+  --ns-focus:      var(--ns-cyan);
+  --ns-focus-ring: 0 0 0 2px var(--ns-bg), 0 0 0 4px var(--ns-cyan);
+
+  /* ---- フォント ---- */
+  --ns-font-sans: system-ui, -apple-system, 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Yu Gothic UI', Meiryo, sans-serif;
+  --ns-font-mono: ui-monospace, 'Cascadia Mono', 'SF Mono', Consolas, 'Noto Sans Mono', Menlo, monospace;
+
+  /* ---- フォントサイズスケール(1.2比・rem) ---- */
+  --ns-fs-2xs: 0.6875rem;  /* 11px */
+  --ns-fs-xs:  0.75rem;    /* 12px */
+  --ns-fs-sm:  0.8125rem;  /* 13px */
+  --ns-fs-md:  0.875rem;   /* 14px 既定本文 */
+  --ns-fs-base:0.9375rem;  /* 15px */
+  --ns-fs-lg:  1.0625rem;  /* 17px */
+  --ns-fs-xl:  1.3125rem;  /* 21px */
+  --ns-fs-2xl: 1.625rem;   /* 26px */
+  --ns-fs-3xl: 2.125rem;   /* 34px */
+  --ns-fs-4xl: 2.75rem;    /* 44px ロゴ */
+
+  --ns-lh-tight: 1.25;
+  --ns-lh:       1.6;
+  --ns-lh-loose: 1.75;
+
+  --ns-fw-normal: 400;
+  --ns-fw-medium: 500;
+  --ns-fw-semi:   600;
+  --ns-fw-bold:   700;
+
+  /* ---- 間隔スケール(4pxベース) ---- */
+  --ns-sp-0:  0;
+  --ns-sp-1:  4px;
+  --ns-sp-2:  8px;
+  --ns-sp-3:  12px;
+  --ns-sp-4:  16px;
+  --ns-sp-5:  20px;
+  --ns-sp-6:  24px;
+  --ns-sp-8:  32px;
+  --ns-sp-10: 40px;
+  --ns-sp-12: 48px;
+  --ns-sp-16: 64px;
+
+  --ns-gap: 12px;   /* §9規定の既定ギャップ */
+
+  /* ---- 角丸 ---- */
+  --ns-radius-sm: 6px;
+  --ns-radius:    10px;   /* §9規定 */
+  --ns-radius-lg: 14px;
+  --ns-radius-pill: 999px;
+
+  /* ---- ボーダー幅 ---- */
+  --ns-bw:    1px;
+  --ns-bw-2:  2px;
+  --ns-bw-sev: 3px;  /* シビリティ左ボーダー */
+
+  /* ---- 影(深夜の沈み込む影 + グロー) ---- */
+  --ns-shadow-1: 0 1px 2px #00000059;
+  --ns-shadow-2: 0 4px 14px #0007;
+  --ns-shadow-3: 0 12px 34px #000a;
+  --ns-shadow-inset: inset 0 1px 0 #ffffff08;
+
+  /* グロー(effects.cssで使用。要所のみ) */
+  --ns-glow-cyan:  0 0 10px #22d3ee55, 0 0 22px #22d3ee2e;
+  --ns-glow-green: 0 0 10px #3ddc8455, 0 0 22px #3ddc842e;
+  --ns-glow-amber: 0 0 10px #ffb02055;
+  --ns-glow-red:   0 0 12px #ff4d4d66;
+
+  /* ---- モーション ---- */
+  --ns-dur-1: 90ms;
+  --ns-dur-2: 160ms;
+  --ns-dur-3: 260ms;
+  --ns-dur-slow: 600ms;
+  --ns-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ns-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* ---- z-index スケール ---- */
+  --ns-z-base:    0;
+  --ns-z-sticky:  10;   /* topbar / tabs / 下部タブバー */
+  --ns-z-drawer:  40;   /* ナレッジのドロワー化 */
+  --ns-z-overlay: 60;   /* ダイアログのバックドロップ */
+  --ns-z-dialog:  70;   /* ダイアログ本体 */
+  --ns-z-ending:  80;   /* エンディング */
+  --ns-z-boot:    90;   /* 起動画面 */
+  --ns-z-toast:   100;  /* トースト最上位 */
+
+  /* ---- レイアウト寸法 ---- */
+  --ns-col-left:  240px;
+  --ns-col-right: 300px;
+  --ns-topbar-h:  56px;
+  --ns-tabbar-h:  58px;   /* モバイル下部タブバー */
+  --ns-maxw:      1680px;
+}
