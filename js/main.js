@@ -172,6 +172,55 @@
     });
   }
 
+  // ============================================================
+  // ナレッジ・ドロワー(モバイル/タブレット)
+  //   topbar の #btn-drawer で #knowledge を右からスライドイン。
+  //   ~1024px でのみUIが表示される(CSS)。デスクトップでは常時サイドバー。
+  // ============================================================
+  function bindDrawer() {
+    const btn = $('#btn-drawer');
+    const panel = $('#knowledge');
+    const backdrop = $('#drawer-backdrop');
+    const closeBtn = $('#btn-drawer-close');
+    if (!btn || !panel) return;
+
+    const isOpen = () => panel.getAttribute('data-drawer') === 'open';
+
+    function openDrawer() {
+      if (isOpen()) return;
+      panel.setAttribute('data-drawer', 'open');
+      btn.setAttribute('aria-expanded', 'true');
+      if (backdrop) {
+        backdrop.hidden = false;
+        // 次フレームで data-open を付けてフェードイン(reduced時も見た目は問題ない)
+        window.requestAnimationFrame(() => backdrop.setAttribute('data-open', ''));
+      }
+      if (NS.a11y && typeof NS.a11y.trap === 'function') NS.a11y.trap(panel);
+      else if (closeBtn) { try { closeBtn.focus(); } catch (e) { /* noop */ } }
+    }
+
+    function closeDrawer() {
+      if (!isOpen()) return;
+      panel.removeAttribute('data-drawer');
+      btn.setAttribute('aria-expanded', 'false');
+      if (backdrop) {
+        backdrop.removeAttribute('data-open');
+        const hide = () => { backdrop.hidden = true; };
+        if (NS.state && NS.state.reduced) hide();
+        else window.setTimeout(hide, 280);
+      }
+      if (NS.a11y && typeof NS.a11y.release === 'function') NS.a11y.release(panel);
+      try { btn.focus(); } catch (e) { /* noop */ }
+    }
+
+    btn.addEventListener('click', (e) => { e.preventDefault(); isOpen() ? closeDrawer() : openDrawer(); });
+    if (closeBtn) closeBtn.addEventListener('click', (e) => { e.preventDefault(); closeDrawer(); });
+    if (backdrop) backdrop.addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen()) closeDrawer(); });
+    // 画面が広がってドロワー不要になったら閉じる(サイドバー表示へ戻す)
+    window.addEventListener('resize', () => { if (isOpen() && window.innerWidth > 1024) closeDrawer(); });
+  }
+
   function bindHelp() {
     const btn = $('#btn-help');
     const dlg = $('#help-dialog');
@@ -436,6 +485,7 @@
   function init() {
     bindBoot();
     bindChallenge();
+    bindDrawer();
     bindHelp();
     bindRestart();
     setupChatDispatch();

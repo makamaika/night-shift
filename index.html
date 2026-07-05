@@ -150,6 +150,11 @@
         </ul>
       </div>
       <div class="ns-topbar__right">
+        <button type="button" id="btn-drawer" class="ns-iconbtn ns-iconbtn--drawer"
+                aria-expanded="false" aria-controls="knowledge" title="道具箱(ナレッジ)を開く">
+          <span class="ns-iconbtn__ico" aria-hidden="true">▣</span>
+          <span class="ns-iconbtn__txt">道具箱</span>
+        </button>
         <button type="button" id="btn-reduce" class="ns-iconbtn" aria-pressed="false" title="モーション軽減の切り替え">
           <span class="ns-iconbtn__ico" aria-hidden="true">◐</span>
           <span class="ns-iconbtn__txt">モーション軽減</span>
@@ -282,6 +287,9 @@
 
     <!-- 右: ナレッジ(道具箱) -->
     <aside id="knowledge" class="ns-knowledge" aria-labelledby="knowledge-h">
+      <button type="button" id="btn-drawer-close" class="ns-knowledge__close" aria-label="道具箱を閉じる">
+        <span aria-hidden="true">✕</span>
+      </button>
       <h2 id="knowledge-h" class="ns-panel-title">
         <span class="ns-panel-title__ico" aria-hidden="true">▣</span>ナレッジ(道具箱)
       </h2>
@@ -294,6 +302,9 @@
         <!-- 選択したカードの詳説を panels.js が描画 -->
       </div>
     </aside>
+
+    <!-- モバイル/タブレットのナレッジ・ドロワー用バックドロップ -->
+    <div id="drawer-backdrop" class="ns-drawer-backdrop" aria-hidden="true" hidden></div>
 
   </div><!-- /#app -->
 

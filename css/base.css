@@ -256,12 +256,58 @@ code, kbd, samp { font-family: var(--ns-font-mono); }
     box-shadow: var(--ns-shadow-3);
     border-left: var(--ns-bw) solid var(--ns-line-hi);
     padding-top: calc(var(--ns-sp-4) + env(safe-area-inset-top, 0px));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-  /* JS(a11y/ui)が html もしくは #knowledge に data-drawer="open" を付ける想定。
-     どちらでも開くよう両系統に対応 */
+  /* JS(main)が #knowledge に data-drawer="open" を付ける。html 側にも対応 */
   html[data-drawer="open"] #knowledge,
   #knowledge[data-drawer="open"] {
     transform: translateX(0);
+  }
+
+  /* バックドロップ(ドロワーの下・コンテンツの上) */
+  .ns-drawer-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: calc(var(--ns-z-drawer) - 1);
+    background: #0007;
+    border: 0;
+    opacity: 0;
+    transition: opacity var(--ns-dur-3) var(--ns-ease);
+  }
+  .ns-drawer-backdrop[data-open] { opacity: 1; }
+}
+
+/* ナレッジの閉じるボタン: 既定(=ドロワー幅)では表示。デスクトップでは下で非表示 */
+.ns-knowledge { position: relative; }
+.ns-knowledge__close {
+  display: inline-flex;
+  position: absolute;
+  top: var(--ns-sp-3); right: var(--ns-sp-3);
+  width: 36px; height: 36px;
+  align-items: center; justify-content: center;
+  background: var(--ns-panel2);
+  color: var(--ns-dim);
+  border: var(--ns-bw) solid var(--ns-line);
+  border-radius: var(--ns-radius-sm);
+  cursor: pointer;
+}
+.ns-knowledge__close:hover { color: var(--ns-text-hi); border-color: var(--ns-line-hi); }
+
+/* デスクトップ(ナレッジは右サイドバー)ではドロワー用UIを隠す */
+@media (min-width: 1025px) {
+  .ns-topbar .ns-iconbtn--drawer { display: none; }
+  .ns-knowledge__close { display: none; }
+}
+
+/* iOS はフォーカス時にフォントサイズ16px未満の入力欄を自動拡大(ズーム)する。
+   スマホ幅、またはタッチ端末では文字入力系コントロールを16pxに固定してこれを防ぐ。 */
+@media (max-width: 680px), (pointer: coarse) {
+  input[type="text"], input[type="number"], input[type="email"],
+  input[type="search"], input[type="url"], input[inputmode],
+  select, textarea,
+  .ns-term__input, .ns-ch__text, #jump-select, .ns-select select {
+    font-size: 16px;
   }
 }
 

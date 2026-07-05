@@ -655,6 +655,12 @@
   .ns-ch__hintbtn { flex: 1 1 auto; }
 
   .ns-ch__order-text { font-size: var(--ns-fs-xs); }
+  /* タッチ端末で押しやすいよう ↑↓ を 44px 以上に */
+  .ns-ch__order-item button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .ns-ch__hintbtn, .ns-ch__gradebtn { min-height: 44px; }
 }
 
 /* ============================================================= */
