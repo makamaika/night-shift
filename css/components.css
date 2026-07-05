@@ -419,6 +419,9 @@
 /* アラートキュー(左)                                            */
 /* ============================================================= */
 .ns-queue__alerts, .ns-queue__chat { display: flex; flex-direction: column; min-height: 0; }
+/* アラートは縮めない(縮むと overflow:visible のカードがチャットに重なる)。
+   件数が多いときは #queue 全体がスクロールする。 */
+.ns-queue__alerts { flex: 0 0 auto; }
 .ns-queue__chat { flex: 1 1 auto; }
 .ns-alert-list { display: flex; flex-direction: column; gap: var(--ns-sp-2); }
 
