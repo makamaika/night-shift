@@ -1238,6 +1238,14 @@
   white-space: pre-wrap;
   word-break: break-word;
 }
+/* 本文が <pre> の場合、UA既定の white-space:pre で横にはみ出す。
+   改行は保ちつつ長い行を折り返す。 */
+.ns-report-doc__body {
+  margin: 0;
+  font: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
 .ns-report-doc h4 {
   font-family: var(--ns-font-sans);
   font-size: var(--ns-fs-xs);
@@ -1626,14 +1634,16 @@
 }
 .ns-kc__title { font-size: var(--ns-fs-lg); font-weight: var(--ns-fw-semi); color: var(--ns-text-hi); }
 .ns-kc__lede { font-size: var(--ns-fs-sm); line-height: var(--ns-lh); color: var(--ns-dim); }
-.ns-kc__stage { position: relative; }
-.ns-kc__links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.ns-kc__stage { position: relative; display: flex; flex-direction: column; }
+/* 連結線はカードの真下に置く独立ストリップ(絶対配置の全面オーバーレイをやめる) */
+.ns-kc__links { display: block; width: 100%; height: 64px; pointer-events: none; }
 .ns-kc__link-base { stroke: var(--ns-line-hi); stroke-width: 1.5; fill: none; }
 .ns-kc__link-glow { stroke: var(--ns-cyan); stroke-width: 2.5; fill: none; filter: drop-shadow(0 0 4px #22d3ee88); }
 .ns-kc__node { fill: var(--ns-cyan); }
 .ns-kc__cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  /* 証跡数だけの列で常に1行(JSが --kc-n を設定)。線のノードがカードの真下に揃う。 */
+  grid-template-columns: repeat(var(--kc-n, 4), minmax(0, 1fr));
   gap: var(--ns-sp-3);
 }
 .ns-kc__card {
@@ -1760,4 +1770,9 @@
 @media (max-width: 680px) {
   .ns-ddos__meters { grid-template-columns: minmax(0, 1fr); }
   .ns-ddos__btns { grid-template-columns: minmax(0, 1fr); }
+  /* 狭い画面では証跡カードを2列に折り返し、真下に引けない連結線は隠す
+     (クライマックスは THE KILL CHAIN バナーが担う) */
+  .ns-kc__cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ns-kc__links { display: none; }
+  .ns-kc__choices { grid-template-columns: minmax(0, 1fr); }
 }

@@ -144,17 +144,19 @@
     stage.setAttribute('role', 'group');
     stage.setAttribute('aria-label', '証跡の相関分析ステージ');
 
+    // カード(上段) → 連結線ストリップ(中段) → バナー(下段) の順で縦に積む。
+    // 線はカードの真下に置き、証跡どうしを一本に結ぶ。
+    const cardsLayer = el('div', 'ns-kc__cards');
+    stage.appendChild(cardsLayer);
+
     const svg = svgEl('svg', {
       class: 'ns-kc__links',
-      viewBox: '0 0 1000 320',
+      viewBox: '0 0 1000 72',
       preserveAspectRatio: 'none',
       'aria-hidden': 'true',
       focusable: 'false',
     });
     stage.appendChild(svg);
-
-    const cardsLayer = el('div', 'ns-kc__cards');
-    stage.appendChild(cardsLayer);
 
     const banner = el('div', 'ns-kc__banner');
     banner.setAttribute('aria-hidden', 'true');
@@ -254,6 +256,8 @@
     const chain = getChain();
     els.cardsLayer.innerHTML = '';
     els.cards = [];
+    // カードを常に1行(証跡数の列)に。連結線のノードが各カードの真下に揃う。
+    els.cardsLayer.style.setProperty('--kc-n', String(chain.length || 1));
     chain.forEach((ev, i) => {
       const card = el('article', 'ns-kc__card');
       card.dataset.evId = ev.id;
@@ -335,10 +339,9 @@
 
   // カード中心座標(viewBox 0..1000 / 0..320 換算)を返す。整列後の横一列を線で結ぶ。
   function slotPoint(i, n) {
-    const marginX = 90;
-    const usable = 1000 - marginX * 2;
-    const x = n > 1 ? marginX + (usable * i) / (n - 1) : 500;
-    const y = 232; // カード帯の中心付近(下段の一列)
+    // ノードを各カードの中心の真下に置く(等幅グリッドの中心 = (i+0.5)/n)。
+    const x = n > 1 ? (1000 * (i + 0.5)) / n : 500;
+    const y = 42; // 連結ストリップ(viewBox高さ72)の中心付近
     return { x, y };
   }
 
@@ -370,7 +373,7 @@
       const b = slotPoint(i + 1, n);
       // ゆるいカーブで隣接ノードを結ぶ(上に反った弧)
       const midX = (a.x + b.x) / 2;
-      const ctrlY = a.y - 46;
+      const ctrlY = a.y - 20;
       const d = 'M ' + a.x + ' ' + a.y + ' Q ' + midX + ' ' + ctrlY + ' ' + b.x + ' ' + b.y;
 
       const base = svgEl('path', { d, class: 'ns-kc__link-base' });

@@ -38,6 +38,17 @@ ul, ol { padding: 0; list-style: none; }
 fieldset { padding: 0; border: 0; min-width: 0; }
 legend { padding: 0; }
 
+/* 長い文字列(IP・ドメイン・ハッシュ・URL 等の途中に空白のない語)も
+   はみ出さず折り返す。等幅の pre ブロックは white-space:pre のため影響を受けず
+   横スクロールのまま(challenge のコード、ターミナル出力の桁揃えを保持)。 */
+body { overflow-wrap: anywhere; word-break: normal; }
+
+/* ただし等幅の表(NAT表・ハッシュ照合表)は列を保つため折り返さず、
+   はみ出したら各自の overflow-x:auto コンテナで横スクロールさせる。 */
+.ns-net__nat, .ns-net__nat *,
+.ns-hash__table, .ns-hash__table * { overflow-wrap: normal; }
+.ns-net__nat th, .ns-net__nat td { white-space: nowrap; }
+
 a { color: var(--ns-cyan-hi); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
