@@ -729,7 +729,9 @@
   padding: var(--ns-sp-2) var(--ns-sp-4);
   border-top: var(--ns-bw) solid var(--ns-line);
   background: #0d141d;
-  min-height: 0;
+  /* 縮ませない。縮むとチップが下の入力欄に食い込んで見切れる。
+     縦が足りないときは出力領域(overflow:auto)が縮んでスクロールする。 */
+  flex: 0 0 auto;
 }
 .ns-term__suggest:empty { display: none; }
 
@@ -766,6 +768,7 @@
   padding: var(--ns-sp-3) var(--ns-sp-4);
   border-top: var(--ns-bw) solid var(--ns-line);
   background: #0b1119;
+  flex: 0 0 auto;   /* 入力欄も縮ませない(出力領域が縦を吸収) */
 }
 .ns-term__prompt {
   font-family: var(--ns-font-mono);
