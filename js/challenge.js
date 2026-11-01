@@ -491,7 +491,7 @@
     if (screen) {
       screen.hidden = false;
       if (NS.a11y && typeof NS.a11y.trap === 'function') {
-        try { NS.a11y.trap(screen); } catch (e) { /* noop */ }
+        try { NS.a11y.trap(screen, { onEscape: close }); } catch (e) { /* noop */ }
       }
     }
     const title = $('#ch-title');

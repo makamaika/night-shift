@@ -463,6 +463,9 @@
       b.addEventListener('click', handler);
       cleanups.push(() => b.removeEventListener('click', handler));
     });
+    const saved = apiRef && apiRef.state && apiRef.state.decisions &&
+      apiRef.state.decisions.find((d) => d && d.id === 'containment');
+    if (saved && CHOICES.some((c) => c.id === saved.choice)) onDecide(saved.choice, btns);
     // 判断へ視線誘導
     after(reduced() ? 0 : 400, () => {
       try {
@@ -475,6 +478,9 @@
 
   function onDecide(choiceId, btns) {
     if (phase === 'decided') return;
+    const saved = apiRef && apiRef.state && apiRef.state.decisions &&
+      apiRef.state.decisions.find((d) => d && d.id === 'containment');
+    if (saved && CHOICES.some((c) => c.id === saved.choice)) choiceId = saved.choice;
     const choice = CHOICES.find((c) => c.id === choiceId);
     if (!choice) return;
     phase = 'decided';
@@ -488,7 +494,7 @@
     // スコア反映(actions.addScore。無ければ握りつぶす)
     const actions = apiRef && apiRef.actions;
     let decidedViaActions = false;
-    if (actions) {
+    if (actions && !saved) {
       if (typeof actions.addScore === 'function') {
         const sc = choice.score;
         if (sc.containment) actions.addScore('containment', sc.containment);
@@ -502,7 +508,7 @@
       }
     }
     // actions 経由で記録できない場合のみ、判断イベントを直接発火(二重発火防止)。
-    if (!decidedViaActions) emit('decision:made', { id: 'containment', choice: choiceId });
+    if (!saved && !decidedViaActions) emit('decision:made', { id: 'containment', choice: choiceId });
 
     // 講評表示(色+タグ+テキストの三重表現)
     const meta = VERDICT_META[choice.verdict] || { tag: '判断', cls: 'info' };
@@ -533,7 +539,7 @@
     cleanups.push(() => nextBtn.removeEventListener('click', nextHandler));
     els.review.appendChild(nextBtn);
 
-    toast('封じ込め判断を記録しました。', meta.cls === 'ok' ? 'ok' : 'warn');
+    if (!saved) toast('封じ込め判断を記録しました。', meta.cls === 'ok' ? 'ok' : 'warn');
   }
 
   // ---- 公開API(§10) ---------------------------------------------------
