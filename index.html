@@ -105,8 +105,10 @@
         <div class="ns-boot__actions">
           <button type="submit" id="btn-start" class="ns-btn ns-btn--primary ns-btn--lg">
             <span class="ns-btn__ico" aria-hidden="true">▶</span>
-            シフト開始
+            <span id="start-label">シフト開始</span>
           </button>
+          <button type="button" id="btn-resume" class="ns-btn ns-btn--ghost ns-btn--lg" hidden>続きから再開</button>
+          <p id="save-note" class="ns-boot__hint" role="status" hidden></p>
           <button type="button" id="btn-challenge" class="ns-btn ns-btn--ghost ns-btn--lg">
             <span class="ns-btn__ico" aria-hidden="true">◆</span>
             実践演習に挑む

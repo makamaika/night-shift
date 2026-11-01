@@ -86,6 +86,8 @@
 
   // ---- 永続化 --------------------------------------------------------------
   let saveScheduled = false;
+  let saveGeneration = 0;
+  let saveStatus = 'none'; // none | valid | corrupt | unavailable
 
   function serialize() {
     return {
@@ -117,9 +119,12 @@
 
   function save() {
     saveScheduled = false;
+    // 読み込めない既存データは、明示的な新規開始まで上書きしない。
+    if (saveStatus === 'corrupt') return false;
     if (!hasStorage()) return false;
     try {
       window.localStorage.setItem(SAVE_KEY, JSON.stringify(serialize()));
+      saveStatus = 'valid';
       return true;
     } catch (_) {
       // 容量超過・プライベートモード等。保存失敗は致命ではないので黙って諦める。
@@ -131,7 +136,8 @@
   function scheduleSave() {
     if (saveScheduled) return;
     saveScheduled = true;
-    const flush = () => save();
+    const generation = saveGeneration;
+    const flush = () => { if (generation === saveGeneration) save(); };
     if (typeof Promise !== 'undefined') {
       Promise.resolve().then(flush);
     } else if (typeof setTimeout !== 'undefined') {
@@ -149,32 +155,32 @@
   }
 
   function load() {
-    if (!hasStorage()) return false;
+    if (!hasStorage()) { saveStatus = 'unavailable'; return false; }
     let raw;
     try {
       raw = window.localStorage.getItem(SAVE_KEY);
     } catch (_) {
+      saveStatus = 'unavailable';
       return false;
     }
-    if (!raw) return false;
+    if (!raw) { saveStatus = 'none'; return false; }
     let data;
     try {
       data = JSON.parse(raw);
     } catch (_) {
-      // 壊れたセーブは破棄。
-      discardSave();
+      saveStatus = 'corrupt';
       return false;
     }
-    if (!isPlainObject(data)) {
-      discardSave();
+    if (!validSavedData(data)) {
+      saveStatus = 'corrupt';
       return false;
     }
     try {
       applyLoaded(data);
+      saveStatus = 'valid';
       return true;
     } catch (_) {
-      // 予期しない形なら破棄して初期状態に戻す。
-      discardSave();
+      saveStatus = 'corrupt';
       Object.assign(state, freshState());
       return false;
     }
@@ -200,6 +206,30 @@
       speed: numOr(data.score && data.score.speed, 0),
     };
     state.flags = isPlainObject(data.flags) ? Object.assign({}, data.flags) : {};
+  }
+
+  function validSavedData(data) {
+    if (!isPlainObject(data) || data.v !== 1 ||
+        (data.mode !== 'guided' && data.mode !== 'pro') ||
+        typeof data.reduced !== 'boolean' ||
+        !Number.isFinite(data.clockMin) || data.clockMin < 0 ||
+        !Number.isInteger(data.phaseIndex) || data.phaseIndex < 0 ||
+        typeof data.phaseId !== 'string' || phaseIndexOf(data.phaseId) < 0 ||
+        !isPlainObject(data.alerts) || !isPlainObject(data.objectives) ||
+        !isPlainObject(data.score) || !isPlainObject(data.flags)) return false;
+    const strings = ['knowledgeUnlocked', 'knowledgeUsed', 'evidence', 'eggs'];
+    if (!strings.every((key) => Array.isArray(data[key]) &&
+        data[key].every((value) => typeof value === 'string'))) return false;
+    if (!Array.isArray(data.decisions) || !data.decisions.every((d) =>
+      isPlainObject(d) && typeof d.id === 'string' && typeof d.choice === 'string' &&
+      Number.isFinite(d.clockMin))) return false;
+    if (!Object.values(data.alerts).every((v) => ['new', 'open', 'resolved'].includes(v))) return false;
+    if (!Object.values(data.objectives).every((bucket) => isPlainObject(bucket) &&
+        Object.values(bucket).every((done) => done === true))) return false;
+    if (!['containment', 'ethics', 'speed'].every((key) =>
+      Number.isFinite(data.score[key]))) return false;
+    return Object.values(data.flags).every((v) => v === null ||
+      ['string', 'number', 'boolean'].includes(typeof v));
   }
 
   function cloneObjectives(obj) {
@@ -387,11 +417,16 @@
     load() {
       return load();
     },
+    saveStatus() {
+      return saveStatus;
+    },
     reset() {
+      saveGeneration++;
+      saveScheduled = false;
       Object.assign(state, freshState());
       syncReducedAttr(false);
       discardSave();
-      scheduleSave();
+      saveStatus = 'none';
     },
   };
 

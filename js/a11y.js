@@ -36,16 +36,19 @@
   // ============================================================
   const trapStack = []; // {el, prevFocus, keyHandler}
 
-  function trap(elm) {
+  function trap(elm, options) {
     if (!elm) return;
+    if (trapStack.some((entry) => entry.el === elm)) return;
     const prevFocus = document.activeElement;
 
     const keyHandler = (e) => {
       if (e.key === 'Escape') {
         e.preventDefault();
         e.stopPropagation();
-        // 一番上のトラップ要素を閉じる
-        requestClose(elm);
+        // 画面ごとの閉じ方を尊重する。boot は閉じられない。
+        if (options && options.onEscape === false) return;
+        if (options && typeof options.onEscape === 'function') options.onEscape();
+        else requestClose(elm);
         return;
       }
       if (e.key !== 'Tab') return;
@@ -83,7 +86,7 @@
 
   function release(elm) {
     // elm 指定があればそれ、なければ最上位を解除
-    let idx = trapStack.length - 1;
+    let idx = elm ? -1 : trapStack.length - 1;
     if (elm) {
       for (let i = trapStack.length - 1; i >= 0; i--) {
         if (trapStack[i].el === elm) { idx = i; break; }
@@ -141,12 +144,14 @@
 
   function initReduced() {
     const mq = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
-    // 保存された手動設定を優先、なければ OS 設定
+    // 手動設定、読み込んだシフトの設定、OS 設定の順に優先する。
     let saved = null;
     try { saved = localStorage.getItem(REDUCE_KEY); } catch (e) { saved = null; }
     let initial;
     if (saved === '1' || saved === '0') initial = saved === '1';
-    else initial = !!(mq && mq.matches);
+    else if (actions && typeof actions.saveStatus === 'function' && actions.saveStatus() === 'valid') {
+      initial = !!state.reduced;
+    } else initial = !!(mq && mq.matches);
     setReduced(initial, { silent: true });
 
     // OS 設定変化に追従(手動保存が無いときのみ)

@@ -41,6 +41,15 @@
   function start(payload) {
     const mode = payload && payload.mode;
     const phaseId = (payload && payload.phaseId) || 'quiet';
+    if (payload && payload.resume) {
+      const phase = phaseById(phaseId) || phasesList()[0] || null;
+      if (!phase) return;
+      teardownPhase();
+      clearAdvanceTimer();
+      started = true;
+      enterPhase(phase, true);
+      return;
+    }
     if (mode && actions) actions.setMode(mode);
     started = true;
     jumpTo(phaseId);
@@ -87,11 +96,11 @@
   // =========================================================================
   //  フェーズ進入
   // =========================================================================
-  function enterPhase(phase) {
+  function enterPhase(phase, resuming) {
     currentPhase = phase;
 
     // 時計を合わせる(clockMin 優先、なければ clock 文字列から)。
-    const min = resolvePhaseMin(phase);
+    const min = resuming && NS.state ? NS.state.clockMin : resolvePhaseMin(phase);
     if (actions) actions.setClock(min);
 
     // state 更新 + phase:enter 発火。
@@ -116,7 +125,7 @@
 
     // 目標監視を開始。目標が無ければ即ゲーム/次へ。
     setupObjectiveMonitors(phase);
-    if (!hasObjectives(phase)) {
+    if (!hasObjectives(phase) || allObjectivesDone(phase)) {
       onAllObjectivesDone(phase);
     }
   }
@@ -164,6 +173,8 @@
   function setupObjectiveMonitors(phase) {
     teardownMonitors();
     if (!Array.isArray(phase.objectives) || !bus) return;
+    const alreadyFound = [];
+    const evidence = (NS.state && NS.state.evidence) || [];
 
     phase.objectives.forEach((obj) => {
       if (!obj || !obj.id) return;
@@ -172,6 +183,11 @@
 
       const doneOn = obj.doneOn;
       if (!doneOn || !doneOn.event) return;
+      if (doneOn.event === 'evidence:add' &&
+          evidence.some((id) => matchesPartial({ id: id }, doneOn.match))) {
+        alreadyFound.push(obj);
+        return;
+      }
 
       const handler = (payload) => {
         if (matchesPartial(payload, doneOn.match)) {
@@ -180,6 +196,12 @@
       };
       const off = bus.on(doneOn.event, handler);
       objectiveMonitors.push({ off: off });
+    });
+    // 既取得証跡はイベントを再発火せず、対応する目標だけ一度達成にする。
+    alreadyFound.forEach((obj) => {
+      if (isObjectiveDone(phase.id, obj.id)) return;
+      actions.completeObjective(phase.id, obj.id);
+      actions.addScore('speed', 1);
     });
   }
 
@@ -271,6 +293,10 @@
   let gameDoneOff = null;
 
   function openGame(phase, game) {
+    if (NS.state && NS.state.flags && NS.state.flags['gameDone:' + phase.id] === true) {
+      scheduleAdvance(phase);
+      return;
+    }
     if (!bus) {
       scheduleAdvance(phase);
       return;
@@ -287,6 +313,7 @@
     cleanupGameListener();
     const handler = () => {
       cleanupGameListener();
+      if (actions) actions.setFlag('gameDone:' + phase.id, true);
       // ゲーム由来の証跡/相関は各ゲームが actions 経由で反映済みの想定。次フェーズへ。
       scheduleAdvance(phase);
     };

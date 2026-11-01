@@ -5,6 +5,8 @@
   const bus = NS.bus;
   const actions = NS.actions;
   const state = NS.state;
+  // DOMContentLoaded の a11y.initReduced より前にロードする。
+  if (actions && typeof actions.load === 'function') actions.load();
 
   const $ = (sel) => document.querySelector(sel);
   const el = (tag, cls, text) => {
@@ -31,7 +33,7 @@
   // ============================================================
   // ブート画面 → アプリ本体への遷移
   // ============================================================
-  function startShift() {
+  function startShift(resume) {
     const form = $('#boot-form');
     // モード読み取り
     let mode = 'guided';
@@ -46,7 +48,16 @@
     phaseId = validPhase(phaseId);
 
     // reduced は a11y が #chk-reduce を監視して既に state/html に反映済み。
-    if (typeof actions.setMode === 'function') actions.setMode(mode);
+    if (resume) {
+      mode = state.mode;
+      phaseId = validPhase(state.phaseId);
+    } else {
+      const reduce = $('#chk-reduce');
+      const reduced = !!(reduce && reduce.checked);
+      if (typeof actions.reset === 'function') actions.reset();
+      if (typeof actions.setReduced === 'function') actions.setReduced(reduced);
+      if (typeof actions.setMode === 'function') actions.setMode(mode);
+    }
 
     // 画面遷移
     const boot = $('#boot');
@@ -59,10 +70,11 @@
 
     // 静的パネル(ネット図/NAT表)をこのタイミングで描画(データ確定後)
     if (NS.ui && typeof NS.ui.renderStatic === 'function') NS.ui.renderStatic();
+    if (resume && NS.ui && typeof NS.ui.syncFromState === 'function') NS.ui.syncFromState();
 
     // まず boot 完了を通知、次に shift 開始
     bus.emit('boot:done', {});
-    bus.emit('shift:start', { mode: mode, phaseId: phaseId });
+    bus.emit('shift:start', { mode: mode, phaseId: phaseId, resume: !!resume });
 
     // ターミナル入力へフォーカス(実務モードで即打鍵できるように)
     const inp = $('#term-input');
@@ -74,19 +86,39 @@
     if (form) {
       form.addEventListener('submit', (e) => {
         e.preventDefault();
-        startShift();
+        startShift(false);
       });
     } else {
       // フォームが無い場合の保険:開始ボタン直結
       const btn = $('#btn-start');
-      if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); startShift(); });
+      if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); startShift(false); });
     }
+    const resume = $('#btn-resume');
+    if (resume) resume.addEventListener('click', () => startShift(true));
+    updateSaveChoices();
     // boot 画面にフォーカストラップ(モーダル)。開始で解除される。
     const boot = $('#boot');
     if (boot && !boot.hidden && NS.a11y && typeof NS.a11y.trap === 'function') {
       // 起動直後は最初の操作要素へ
-      NS.a11y.trap(boot);
+      NS.a11y.trap(boot, { onEscape: false });
     }
+  }
+
+  function updateSaveChoices() {
+    const status = actions && typeof actions.saveStatus === 'function' ? actions.saveStatus() : 'none';
+    const resume = $('#btn-resume');
+    const note = $('#save-note');
+    const label = $('#start-label');
+    if (label) label.textContent = status === 'valid' || status === 'corrupt' ? '新しく始める' : 'シフト開始';
+    if (note) note.hidden = status !== 'valid' && status !== 'corrupt';
+    if (status === 'valid' || status === 'corrupt') {
+      if (note) {
+        note.textContent = status === 'valid'
+          ? '保存されたシフトがあります。「続きから再開」で進捗を引き継ぎます。モードと開始フェーズの選択は新規開始に適用されます。'
+          : '保存データを読み込めません。新しく始めると既存の保存データを上書きします。';
+      }
+    }
+    if (resume) resume.hidden = status !== 'valid';
   }
 
   // ============================================================
@@ -195,7 +227,7 @@
         // 次フレームで data-open を付けてフェードイン(reduced時も見た目は問題ない)
         window.requestAnimationFrame(() => backdrop.setAttribute('data-open', ''));
       }
-      if (NS.a11y && typeof NS.a11y.trap === 'function') NS.a11y.trap(panel);
+      if (NS.a11y && typeof NS.a11y.trap === 'function') NS.a11y.trap(panel, { onEscape: closeDrawer });
       else if (closeBtn) { try { closeBtn.focus(); } catch (e) { /* noop */ } }
     }
 
@@ -244,6 +276,7 @@
     btn.addEventListener('click', () => {
       // state をリセット
       if (typeof actions.reset === 'function') actions.reset();
+      updateSaveChoices();
       // ゲーム・法メモ・チャットの結線状態もリセット(reloadしない復帰でも再プレイ可能に)
       unmountGame();
       Object.keys(shownLaws).forEach((k) => { delete shownLaws[k]; });
@@ -262,7 +295,7 @@
       if (NS.term && typeof NS.term.reset === 'function') NS.term.reset();
       else { const out = $('#term-output'); if (out) clear(out); }
       // boot に再度トラップ
-      if (boot && NS.a11y && typeof NS.a11y.trap === 'function') NS.a11y.trap(boot);
+      if (boot && NS.a11y && typeof NS.a11y.trap === 'function') NS.a11y.trap(boot, { onEscape: false });
       window.scrollTo(0, 0);
     });
   }
@@ -470,7 +503,9 @@
     laws.forEach((law) => {
       if (!law || !law.id) return;
       const trig = law.trigger || {};
-      if (trig.phase && trig.phase === phaseId && !shownLaws[law.id]) {
+      const answered = state && Array.isArray(state.decisions) &&
+        state.decisions.some((d) => d && d.id === law.id);
+      if (trig.phase && trig.phase === phaseId && !shownLaws[law.id] && !answered) {
         shownLaws[law.id] = true;
         // 導入チャットの直後に落ち着いて出す(少し遅延)。
         const delay = (NS.state && NS.state.reduced) ? 0 : 2600;
@@ -490,13 +525,6 @@
     bindRestart();
     setupChatDispatch();
 
-    // セーブがあれば load を試みる(state 側が実装)。ここでは自動再開はしない
-    // — boot からの明示開始を基本フローとする。
-    // ただし復帰時のUI同期のため、state に既存進捗があれば ui.syncFromState を促す。
-    if (state && Array.isArray(state.knowledgeUnlocked) && state.knowledgeUnlocked.length &&
-        NS.ui && typeof NS.ui.syncFromState === 'function') {
-      NS.ui.syncFromState();
-    }
   }
 
   if (document.readyState === 'loading') {
